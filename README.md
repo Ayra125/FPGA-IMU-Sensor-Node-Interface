@@ -38,6 +38,14 @@ The project focuses on synthesizable RTL design, protocol implementation, verifi
 - **Hardware debugging:** Vivado Integrated Logic Analyzer
 - **Host connection:** Basys 3 USB-UART interface
 
+## Scripted Setup
+
+Scripted project creation will eventually be available with:
+
+```bash
+vivado -mode batch -source scripts/create_project.tcl
+```
+
 ## System Architecture
 
 ```text
