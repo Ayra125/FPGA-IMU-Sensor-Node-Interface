@@ -36,3 +36,10 @@ greybox_tmp/
 *.rpt
 *.summary
 *.smsg
+
+# Local Vivado build directory
+build/
+
+# Allow selected project reports
+!reports/
+!reports/**
