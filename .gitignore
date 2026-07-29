@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+
+# Local Obsidian project metadata
+.obsidian-project.json
+
+# Simulation outputs
+*.vcd
+*.fst
+*.wlf
+*.ghw
+*.lxt
+*.lxt2
+*.vvp
+sim_build/
+obj_dir/
+work/
+
+# Xilinx Vivado generated files
+.Xil/
+*.cache/
+*.gen/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.jou
+*.str
+
+# Intel Quartus generated files
+db/
+incremental_db/
+output_files/
+greybox_tmp/
+*.qws
+*.rpt
+*.summary
+*.smsg
