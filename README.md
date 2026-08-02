@@ -8,6 +8,10 @@
 
 Current phase: SystemVerilog fundamentals and architecture definition.
 
+**2026-07-29:** Configured the local SystemVerilog toolchain in VS Code (syntax highlighting and linting against Icarus Verilog). Currently writing and simulating a small synchronous counter as a Phase 0 warm-up exercise before starting the sensor RTL.
+
+**2026-08-02:** A Codex review of the counter practice exercise (`practice/counter/tb_counter.sv`) found the self-checking testbench could print a false `PASS` after a real mismatch, since only the last check controlled the verdict. Fixed by adding a persistent error counter fed by every check and a proper three-outcome verdict — then verified for real by fault-injecting a deliberate bug into a scratch copy of the counter and confirming the testbench correctly reported failure instead of a false pass. A follow-up review found the testbench still always exits with a successful process status regardless of pass/fail (needs `$fatal` on failure); that fix, plus the still-missing `$dumpfile`/`$dumpvars` waveform dump, are the next tasks. Phase 0 gate remains not passed.
+
 Hardware verification has not yet been completed. All performance and resource results will be added after synthesis and physical testing.
 
 ## Overview
