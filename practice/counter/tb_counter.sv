@@ -3,7 +3,7 @@ module tb_counter;
  logic clk, reset, enable;
  logic [3:0]count;
  logic [3:0]expected_count;
- logic [3:0]message;
+int message=0;
  counter dut(
     .clk(clk),
     .reset(reset),
@@ -11,11 +11,12 @@ module tb_counter;
     .count(count)
  );
     initial begin
+        $dumpfile("counter.vcd");
+        $dumpvars(0, tb_counter);
         clk=0;
         reset=1;
         expected_count=0;
         enable=0;
-        message=0;
     repeat(4)@(negedge clk);
     reset=0;
     enable=1;
@@ -43,7 +44,11 @@ module tb_counter;
     end
     else
     $display("Wraparound PASS but Count FAIL");
-    $finish;
+    if(message==0)begin
+        $finish;
+    end
+    else
+    $fatal(1,"amount of errors %0d",message);
     end
     always #5 clk=~clk;
  always @(posedge clk) begin

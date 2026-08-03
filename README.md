@@ -10,7 +10,17 @@ Current phase: SystemVerilog fundamentals and architecture definition.
 
 **2026-07-29:** Configured the local SystemVerilog toolchain in VS Code (syntax highlighting and linting against Icarus Verilog). Currently writing and simulating a small synchronous counter as a Phase 0 warm-up exercise before starting the sensor RTL.
 
-**2026-08-02:** A Codex review of the counter practice exercise (`practice/counter/tb_counter.sv`) found the self-checking testbench could print a false `PASS` after a real mismatch, since only the last check controlled the verdict. Fixed by adding a persistent error counter fed by every check and a proper three-outcome verdict — then verified for real by fault-injecting a deliberate bug into a scratch copy of the counter and confirming the testbench correctly reported failure instead of a false pass. A follow-up review found the testbench still always exits with a successful process status regardless of pass/fail (needs `$fatal` on failure); that fix, plus the still-missing `$dumpfile`/`$dumpvars` waveform dump, are the next tasks. Phase 0 gate remains not passed.
+**2026-08-02:** Hardened the counter practice testbench (`practice/counter/tb_counter.sv`) against three separate defects, each found by review and each confirmed fixed by fault injection rather than assumption:
+
+- **False `PASS` after a real failure.** Only the final wraparound check controlled the verdict, so mismatches caught earlier by the cycle-by-cycle scoreboard were discarded. Fixed with a persistent error counter fed by every check, plus a three-outcome verdict (wraparound failed / clean pass / wraparound correct but earlier mismatch).
+- **Successful exit status on a failing run.** The testbench always ended via `$finish`, which reports success to the shell regardless of what was printed — meaning an automated regression could not distinguish pass from fail. Now ends via `$fatal` when the error counter is nonzero.
+- **Silent overflow of the error counter itself.** The counter was declared `logic [3:0]`, so it wrapped at 16 and under-reported; a run with exactly 16 failures would have wrapped to zero and reported a clean pass. Changed to `int`.
+
+Verification method: a deliberately faulty copy of the counter (incrementing by 2) was simulated against the real testbench. It now reports all 21 mismatches and exits `1`; before these fixes the same run printed `PASS` and exited `0`.
+
+Also added `$dumpfile`/`$dumpvars` and inspected the first waveform of the project in Surfer, confirming reset behavior, enabled increment, disabled hold, and 15-to-0 wraparound against the RTL.
+
+Phase 0 gate remains not passed — the two-state FSM, the HDLBits exercises, and selecting a supported x86-64 Vivado host are still outstanding.
 
 Hardware verification has not yet been completed. All performance and resource results will be added after synthesis and physical testing.
 
