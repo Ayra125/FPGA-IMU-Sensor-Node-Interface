@@ -1,12 +1,16 @@
 # FPGA IMU Sensor Node Interface
 
-> FPGA-based MPU6050 data-acquisition pipeline implemented in SystemVerilog on a Digilent Basys 3.
+> In-development FPGA MPU6050 data-acquisition pipeline targeting SystemVerilog on a Digilent Basys 3.
 
 ## Project Status
 
 🚧 **In development**
 
-Current phase: SystemVerilog fundamentals and architecture definition.
+**Current phase:** Phase 1 — Freeze the Specification is complete at the shortened application-milestone gate. Phase 2 — I2C Engine is next.
+
+Production sensor-interface RTL has not started. The Phase 2 I2C source, its testbench, final-project synthesis, and MPU6050 hardware demonstration have not yet been completed.
+
+### Phase 0 — Tools and Fundamentals (complete)
 
 **2026-07-29:** Configured the local SystemVerilog toolchain in VS Code (syntax highlighting and linting against Icarus Verilog). Currently writing and simulating a small synchronous counter as a Phase 0 warm-up exercise before starting the sensor RTL.
 
@@ -20,13 +24,33 @@ Verification method: a deliberately faulty copy of the counter (incrementing by 
 
 Also added `$dumpfile`/`$dumpvars` and inspected the first waveform of the project in Surfer, confirming reset behavior, enabled increment, disabled hold, and 15-to-0 wraparound against the RTL.
 
-Phase 0 gate remains not passed — the two-state FSM, the HDLBits exercises, and selecting a supported x86-64 Vivado host are still outstanding.
+**2026-08-06:** Completed the remaining Phase 0 gate: ten relevant HDLBits exercises, a learner-authored two-state FSM with a self-checking testbench and waveform review, and a supported Vivado-to-Basys-3 flow. A minimal LED design was synthesized, implemented, converted to a bitstream, programmed over JTAG, and observed on physical LD0. This checkpoint validates the tool and board path only; it does not validate the MPU6050 design.
+
+### Phase 1 — Freeze the Specification (application-milestone scope complete)
+
+**2026-08-10:** Completed the shortened Phase 1 gate recorded in the Obsidian project notes. The completed specification work includes:
+
+- A sensor-to-laptop block diagram covering reset conditioning, timing enables, generic I2C, MPU6050 control, packetization, FIFO buffering, packet serialization, and UART.
+- One 100 MHz system-clock domain with clock-enable pulses rather than generated fabric clocks.
+- An active-high synchronous internal-reset policy and documented asynchronous-input synchronization strategy.
+- A 100 kHz I2C target, open-drain SDA/SCL behavior, START, repeated START, STOP, byte transmit/receive, ACK/NACK, clock-stretch waiting, and a bounded 5 ms command timeout.
+- A request/ready command interface with terminal `done` or `error` results.
+- Twelve essential I2C verification requirements covering normal read/write, ACK/NACK, START/STOP, repeated START, timeout, reset, data stability, command backpressure, and representative byte patterns.
+- Six planned I2C safety/completion assertions and an explicit self-checking PASS/FAIL policy.
+- A planned Icarus command for `rtl/i2c_engine.sv` and `tb/tb_i2c_engine.sv`. It is intentionally unrun because those Phase 2 files do not exist yet.
+- A version-1 224-bit internal sample packet, 16-packet synchronous FIFO, 115,200-baud UART, and a 30-byte application-milestone wire frame consisting of a two-byte synchronization header plus the 28-byte payload.
+
+The shortened gate intentionally defers project-wide traceability, CI, coverage closure, formal/UVM work, CRC, estimated-power analysis, and stretch features until after the first verified hardware pipeline.
+
+### Next: Phase 2 — I2C Engine
+
+Before writing RTL, Phase 2 will finish the detailed I2C port/state table and self-checking testbench plan. It must also freeze the per-bit SDA/SCL phase timing, command encodings, controlled NACK/timeout recovery, and exact handshake/reset behavior. Then the learner-authored I2C engine and testbench will be implemented together and run with Icarus Verilog.
 
 Hardware verification has not yet been completed. All performance and resource results will be added after synthesis and physical testing.
 
 ## Overview
 
-This project implements a complete FPGA interface for acquiring motion data from an MPU6050 inertial measurement unit.
+This project is building a complete FPGA interface for acquiring motion data from an MPU6050 inertial measurement unit.
 
 The FPGA will:
 
@@ -48,7 +72,8 @@ The project focuses on synthesizable RTL design, protocol implementation, verifi
 - **Sensor:** MPU6050 IMU
 - **Language:** SystemVerilog
 - **Development environment:** AMD Vivado
-- **Simulation:** Vivado Simulator
+- **Simulation:** Icarus Verilog for local self-checking tests; Vivado Simulator where vendor-tool testing is useful
+- **Waveforms:** Surfer
 - **Hardware debugging:** Vivado Integrated Logic Analyzer
 - **Host connection:** Basys 3 USB-UART interface
 
