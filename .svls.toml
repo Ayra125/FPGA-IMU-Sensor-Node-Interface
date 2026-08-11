@@ -1,0 +1,5 @@
+[verilog]
+include_paths = ["rtl", "rtl/i2c", "tb", "tb/i2c"]
+
+[option]
+linter = false

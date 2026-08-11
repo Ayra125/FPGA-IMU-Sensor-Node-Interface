@@ -6,9 +6,9 @@
 
 🚧 **In development**
 
-**Current phase:** Phase 1 — Freeze the Specification is complete at the shortened application-milestone gate. Phase 2 — I2C Engine is next.
+**Current phase:** Phase 1 — Freeze the Specification is complete at the shortened application-milestone gate. Phase 2 — I2C Engine is active.
 
-Production sensor-interface RTL has not started. The Phase 2 I2C source, its testbench, final-project synthesis, and MPU6050 hardware demonstration have not yet been completed.
+The Phase 2 timing-enable generator and its self-checking testbench pass simulation. The generic I2C engine, its behavioral bus model, final-project synthesis, and MPU6050 hardware demonstration remain incomplete.
 
 ### Phase 0 — Tools and Fundamentals (complete)
 
@@ -44,7 +44,11 @@ The shortened gate intentionally defers project-wide traceability, CI, coverage 
 
 ### Next: Phase 2 — I2C Engine
 
-Before writing RTL, Phase 2 will finish the detailed I2C port/state table and self-checking testbench plan. It must also freeze the per-bit SDA/SCL phase timing, command encodings, controlled NACK/timeout recovery, and exact handshake/reset behavior. Then the learner-authored I2C engine and testbench will be implemented together and run with Icarus Verilog.
+**2026-08-11:** Completed the first Phase 2 increment: `rtl/i2c/timing_enable_gen.sv` produces one-cycle `i2c_step` and `sample_tick` enables from the 100 MHz system clock without generating a second fabric clock. Defaults target 100 kHz I2C timing (`i2c_step` every 500 system-clock cycles) and a 100 Hz acquisition cadence (`sample_tick` every 1,000,000 cycles).
+
+Its learner-authored self-checking testbench, `tb/i2c/tb_timing_enable_gen.sv`, overrides the parameters to 4 and 10 cycles for fast simulation. It checks pulse cadence, one-cycle pulse deassertion, and synchronous reset before and after normal activity. Icarus Verilog completed the regression with `Pass no errors found` and exit status zero. This is simulation evidence only; no synthesis, timing, or hardware result is claimed.
+
+Next, implement the generic I2C engine's documented idle open-drain behavior, then verify START generation before adding byte transfers, ACK/NACK handling, reads, repeated START, and timeout recovery.
 
 Hardware verification has not yet been completed. All performance and resource results will be added after synthesis and physical testing.
 
