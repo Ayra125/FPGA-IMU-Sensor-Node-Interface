@@ -6,9 +6,9 @@
 
 🚧 **In development**
 
-**Current phase:** Phase 1 — Freeze the Specification is complete at the shortened application-milestone gate. Phase 2 — I2C Engine is active.
+**Current phase:** Phase 1 — Freeze the Specification and Phase 2 — I2C Engine are complete at the application-milestone gate. Phase 3 — MPU6050 Model and Acquisition Controller is active.
 
-The Phase 2 timing-enable generator and its self-checking testbench pass simulation. The generic I2C engine, its behavioral bus model, final-project synthesis, and MPU6050 hardware demonstration remain incomplete.
+The Phase 2 timing-enable generator and generic I2C engine pass their self-checking simulations, including the documented normal, NACK, timeout, clock-stretch, reset, repeated-START, and backpressure cases. Phase 3 specification work is now active: the datasheet-backed register sequence and controller result contract are recorded, while the behavioral MPU6050 model, acquisition controller, synthesis, and hardware demonstration remain incomplete.
 
 ### Phase 0 — Tools and Fundamentals (complete)
 
@@ -42,15 +42,39 @@ Also added `$dumpfile`/`$dumpvars` and inspected the first waveform of the proje
 
 The shortened gate intentionally defers project-wide traceability, CI, coverage closure, formal/UVM work, CRC, estimated-power analysis, and stretch features until after the first verified hardware pipeline.
 
-### Next: Phase 2 — I2C Engine
+### Phase 2 — Generic I2C Engine (simulation complete)
 
 **2026-08-11:** Completed the first Phase 2 increment: `rtl/i2c/timing_enable_gen.sv` produces one-cycle `i2c_step` and `sample_tick` enables from the 100 MHz system clock without generating a second fabric clock. Defaults target 100 kHz I2C timing (`i2c_step` every 500 system-clock cycles) and a 100 Hz acquisition cadence (`sample_tick` every 1,000,000 cycles).
 
 Its learner-authored self-checking testbench, `tb/i2c/tb_timing_enable_gen.sv`, overrides the parameters to 4 and 10 cycles for fast simulation. It checks pulse cadence, one-cycle pulse deassertion, and synchronous reset before and after normal activity. Icarus Verilog completed the regression with `Pass no errors found` and exit status zero. This is simulation evidence only; no synthesis, timing, or hardware result is claimed.
 
-Next, implement the generic I2C engine's documented idle open-drain behavior, then verify START generation before adding byte transfers, ACK/NACK handling, reads, repeated START, and timeout recovery.
+**Completed 2026-08-22:** Phase 2 produced a reusable, MPU6050-independent I2C bit/byte engine and timing-enable generator. The design remains in the 100 MHz system-clock domain and uses one-cycle enables for protocol timing rather than creating a fabric-derived clock.
 
-Hardware verification has not yet been completed. All performance and resource results will be added after synthesis and physical testing.
+The engine implements:
+
+- A request/ready command interface for `START`, `STOP`, `WRITE_BYTE`, and `READ_BYTE`
+- Open-drain SDA/SCL control and two-flop synchronization of the observed bus inputs
+- START, repeated START, STOP, MSB-first transmit and receive, and slave/master ACK or NACK behavior
+- Clock-stretch waiting and a bounded 500,000-system-clock-cycle timeout (5 ms at 100 MHz)
+- Defined reset, backpressure, completion, NACK-error, and timeout-error behavior
+
+Verification uses a learner-authored, self-checking SystemVerilog testbench with an inline behavioral I2C slave. The regression covers directed protocol sequences, boundary byte patterns, seeded-random writes and reads, temporary and over-timeout clock stretching, reset during active transfers, repeated START, write NACK, read ACK/final NACK, and back-to-back commands under backpressure. Six continuous monitors check bus data stability, known open-drain controls, one terminal result per accepted command, bounded completion, reset cleanup, and command-field stability. Scratch fault injection was used while developing the monitors to confirm that each one detects its intended failure rather than merely passing the correct RTL.
+
+Simulation-driven debugging exposed both design and verification issues, including incorrect SCL phase sequencing, a timeout counted in the wrong units, command acceptance that could miss a one-cycle request, model-side bus-release leaks, and race-prone read-bit setup. The fixes were retained with regression cases. The final testbench measures complete 5 us SCL high and low phases for byte transfers, corresponding to the specified 100 kHz bus rate in simulation.
+
+#### Why Phase 2 matters to FPGA/RTL recruiters
+
+Phase 2 is the first substantial protocol block in the project. It gives reviewers concrete evidence of finite-state-machine design, synchronous timing control, open-drain bus modeling, handshake and backpressure semantics, input synchronization, bounded error recovery, and protocol-aware verification. Just as important, the bug history shows an evidence-based workflow: failures were reproduced, traced to a specific timing or ownership problem, fixed, and protected by a regression check. Those are directly relevant habits for entry-level RTL design and design-verification work.
+
+Regression command:
+
+```bash
+iverilog -g2012 -Wall -o /tmp/i2c_engine.vvp rtl/i2c/timing_enable_gen.sv rtl/i2c/i2c_engine.sv tb/i2c/tb_i2c_engine.sv && vvp /tmp/i2c_engine.vvp
+```
+
+The recorded Phase 2 run prints the reproducible random seed, ends with `PASS: no errors found`, and exits with status zero.
+
+**Evidence boundary:** Phase 2 is verified by simulation. The I2C engine has not yet been synthesized, checked for post-implementation timing, measured for resource use, or validated with the physical MPU6050. Those results belong to later project phases.
 
 ## Overview
 
