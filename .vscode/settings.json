@@ -1,6 +1,6 @@
 {
   "verilog.linting.linter": "iverilog",
-  "verilog.linting.iverilog.arguments": "-Wall -y rtl/data -y rtl/fifo -y rtl/i2c -y rtl/mpu6050 -y rtl/uart -y practice/counter -y practice/fsm -Y .sv",
+  "verilog.linting.iverilog.arguments": "-Wall -y rtl/data -y rtl/fifo -y rtl/i2c -y rtl/mpu6050 -y tb/mpu6050 -y rtl/uart -y practice/counter -y practice/fsm -Y .sv",
   "verilog.linting.iverilog.runAtFileLocation": false,
   "verilog.linting.iverilog.systemVerilog.standard": "SystemVerilog2012",
   "verilog.languageServer.svls.enabled": true,

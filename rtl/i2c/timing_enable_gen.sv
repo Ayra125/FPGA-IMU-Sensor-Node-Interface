@@ -1,4 +1,5 @@
 // Phase 2 I2C timing-enable generator.
+`timescale 1ns/1ps
 module timing_enable_gen#(
     parameter int STEP_CYCLES = 500,
     parameter int SAMPLE_CYCLES = 1_000_000
@@ -7,7 +8,6 @@ module timing_enable_gen#(
     input logic clk,
     output logic i2c_step,
     output logic sample_tick
-
 
 );
     logic [$clog2(STEP_CYCLES)-1:0] i2c_count;

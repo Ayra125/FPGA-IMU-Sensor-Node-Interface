@@ -8,7 +8,7 @@
 
 **Current phase:** Phase 1 — Freeze the Specification and Phase 2 — I2C Engine are complete at the application-milestone gate. Phase 3 — MPU6050 Model and Acquisition Controller is active.
 
-The Phase 2 timing-enable generator and generic I2C engine pass their self-checking simulations, including the documented normal, NACK, timeout, clock-stretch, reset, repeated-START, and backpressure cases. Phase 3 specification work is now active: the datasheet-backed register sequence and controller result contract are recorded, while the behavioral MPU6050 model, acquisition controller, synthesis, and hardware demonstration remain incomplete.
+The Phase 2 timing-enable generator and generic I2C engine pass their self-checking simulations, including the documented normal, NACK, timeout, clock-stretch, reset, repeated-START, and backpressure cases. Phase 3 implementation is now underway: the behavioral MPU6050 model scaffold and engine-to-model testbench wiring compile, while the transaction stimulus, behavioral regression, acquisition controller, synthesis, and hardware demonstration remain incomplete.
 
 ### Phase 0 — Tools and Fundamentals (complete)
 
@@ -75,6 +75,18 @@ iverilog -g2012 -Wall -o /tmp/i2c_engine.vvp rtl/i2c/timing_enable_gen.sv rtl/i2
 The recorded Phase 2 run prints the reproducible random seed, ends with `PASS: no errors found`, and exits with status zero.
 
 **Evidence boundary:** Phase 2 is verified by simulation. The I2C engine has not yet been synthesized, checked for post-implementation timing, measured for resource use, or validated with the physical MPU6050. Those results belong to later project phases.
+
+### Phase 3 — MPU6050 behavioral model (in progress)
+
+**2026-08-26:** Started the Phase 3 behavioral MPU6050 model and connected it to the existing I2C engine in `tb/mpu6050/tb_mpu6050_model.sv`. The model currently contains a small byte-addressed register map, deterministic test values at `0x3B` and `0x3C`, START/STOP detection, receive-byte assembly, device-address and register-pointer tracking, ACK handling, and an initial read-data path. The testbench includes the simulation clock, timing-enable generator, I2C engine, shared open-drain SDA/SCL buses, and model instance.
+
+The current model/testbench files compile with Icarus Verilog, but no Phase 3 runtime PASS is claimed yet. The testbench still needs self-checking stimulus for `START → D2 → 3B → STOP`, followed by the repeated-START and two-byte read sequence. The model’s ACK/data phase behavior must be validated in simulation before extending it to initialization, the full 14-byte burst, and the acquisition controller.
+
+Compile command for the current Phase 3 scaffold:
+
+```bash
+iverilog -g2012 -Wall -s tb_mpu6050_model -o /tmp/tb_mpu6050_model.vvp rtl/i2c/timing_enable_gen.sv rtl/i2c/i2c_engine.sv tb/mpu6050/mpu6050_model.sv tb/mpu6050/tb_mpu6050_model.sv
+```
 
 ## Overview
 
