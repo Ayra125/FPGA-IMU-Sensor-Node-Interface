@@ -18,8 +18,7 @@ careful not to claim synthesis or hardware results before they have been measure
 
 - Read `README.md` first for the current phase, architecture, target hardware, and
   verification status.
-- Respect the phase gates. Phase 0 is not complete until the remaining FSM and
-  HDLBits work is finished and a supported Vivado host is selected.
+- Respect the current phase gates in README.md. Phase 0/tool flow and Phase 2 I2C simulation are complete; Phase 3 is active. Do not restart completed gates from historical notes.
 - Every RTL change needs a self-checking testbench and a real simulation run; a
   printed `PASS` must agree with a successful process exit status.
 - Keep the design synthesizable for the Basys 3 Artix-7 target and document protocol,
