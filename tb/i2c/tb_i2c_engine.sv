@@ -47,6 +47,8 @@ logic high_start_time_done,low_start_time_done, timing_check_active;
 logic [3:0] ninth_clock_check;
 logic final_phase_checked, final_read_bit_pending, ack_phase_observed;
 logic [3:0] low_phase_count, high_phase_count;
+logic tb_scl_stretch_low;
+
 
 i2c_engine dut (
     .clk(clk),
@@ -77,8 +79,6 @@ timing_enable_gen dutt (
   .i2c_step(i2c_step),
   .sample_tick(sample_tick)
 );
-assign sda_bus =~(sda_drive_low | mpu_sda_drive_low);
-assign scl_bus =~(scl_drive_low | mpu_scl_drive_low);
 assign scl_in = scl_bus;
 assign sda_in = sda_bus;
 localparam logic [1:0] START      = 2'b00;
