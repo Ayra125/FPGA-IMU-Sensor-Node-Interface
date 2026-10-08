@@ -8,7 +8,7 @@
 
 **Current phase:** Phase 1 — Freeze the Specification and Phase 2 — I2C Engine are complete at the application-milestone gate. Phase 3 — MPU6050 Model and Acquisition Controller is active.
 
-The Phase 2 timing-enable generator and generic I2C engine pass their self-checking simulations, including the documented normal, NACK, timeout, clock-stretch, reset, repeated-START, and backpressure cases. Phase 3 implementation is now underway: the behavioral MPU6050 model scaffold and engine-to-model testbench wiring compile, while the transaction stimulus, behavioral regression, acquisition controller, synthesis, and hardware demonstration remain incomplete.
+The Phase 2 timing-enable generator and generic I2C engine pass their self-checking simulations, including the documented normal, NACK, timeout, clock-stretch, reset, repeated-START, and backpressure cases. Phase 3 implementation is underway: the behavioral MPU6050 model and its self-checking testbench pass under Icarus Verilog, while the acquisition controller, synthesis, and hardware demonstration remain incomplete (the controller files are still empty). The Phase 2 and Phase 3 passing results were last reproduced on 2026-10-07 with the testbenches from commit `703fdad`; commit `faab303` carries a work-in-progress change to that testbench that does not yet finish (see the note under the Phase 2 regression command).
 
 ### Phase 0 — Tools and Fundamentals (complete)
 
@@ -37,7 +37,7 @@ Also added `$dumpfile`/`$dumpvars` and inspected the first waveform of the proje
 - A request/ready command interface with terminal `done` or `error` results.
 - Twelve essential I2C verification requirements covering normal read/write, ACK/NACK, START/STOP, repeated START, timeout, reset, data stability, command backpressure, and representative byte patterns.
 - Six planned I2C safety/completion assertions and an explicit self-checking PASS/FAIL policy.
-- A planned Icarus command for `rtl/i2c_engine.sv` and `tb/tb_i2c_engine.sv`. It is intentionally unrun because those Phase 2 files do not exist yet.
+- A planned Icarus command for `rtl/i2c_engine.sv` and `tb/tb_i2c_engine.sv`. It was intentionally unrun at that point because those Phase 2 files did not exist yet; they do now (see Phase 2).
 - A version-1 224-bit internal sample packet, 16-packet synchronous FIFO, 115,200-baud UART, and a 30-byte application-milestone wire frame consisting of a two-byte synchronization header plus the 28-byte payload.
 
 The shortened gate intentionally defers project-wide traceability, CI, coverage closure, formal/UVM work, CRC, estimated-power analysis, and stretch features until after the first verified hardware pipeline.
@@ -72,7 +72,7 @@ Regression command:
 iverilog -g2012 -Wall -o /tmp/i2c_engine.vvp rtl/i2c/timing_enable_gen.sv rtl/i2c/i2c_engine.sv tb/i2c/tb_i2c_engine.sv && vvp /tmp/i2c_engine.vvp
 ```
 
-The recorded Phase 2 run prints the reproducible random seed, ends with `PASS: no errors found`, and exits with status zero.
+The recorded Phase 2 run prints the reproducible random seed, ends with `PASS: no errors found`, and exits with status zero. That run was reproduced on 2026-10-07 with the testbench from commit `703fdad`. At the later commit `faab303`, the I2C testbench is mid-edit for an SCL clock-stretch test: it compiles, but the engine stays busy and the run does not finish (a 60 s watchdog stopped it). The RTL is identical in both commits, so treat `703fdad` as the last passing testbench until the new test is fixed.
 
 **Evidence boundary:** Phase 2 is verified by simulation. The I2C engine has not yet been synthesized, checked for post-implementation timing, measured for resource use, or validated with the physical MPU6050. Those results belong to later project phases.
 
@@ -80,12 +80,14 @@ The recorded Phase 2 run prints the reproducible random seed, ends with `PASS: n
 
 **2026-08-26:** Started the Phase 3 behavioral MPU6050 model and connected it to the existing I2C engine in `tb/mpu6050/tb_mpu6050_model.sv`. The model currently contains a small byte-addressed register map, deterministic test values at `0x3B` and `0x3C`, START/STOP detection, receive-byte assembly, device-address and register-pointer tracking, ACK handling, and an initial read-data path. The testbench includes the simulation clock, timing-enable generator, I2C engine, shared open-drain SDA/SCL buses, and model instance.
 
-The current model/testbench files compile with Icarus Verilog, but no Phase 3 runtime PASS is claimed yet. The testbench still needs self-checking stimulus for `START → D2 → 3B → STOP`, followed by the repeated-START and two-byte read sequence. The model’s ACK/data phase behavior must be validated in simulation before extending it to initialization, the full 14-byte burst, and the acquisition controller.
+**2026-10-03 (commit `703fdad`):** The expanded MPU6050 model and its self-checking testbench pass under Icarus Verilog (`PASS: no errors found`; re-run on 2026-10-07 at commit `faab303`, whose RTL matches `703fdad`). This is simulation only: the model is a behavioral model written for this project's testbench, and nothing has been synthesized or run against a physical MPU6050.
 
-Compile command for the current Phase 3 scaffold:
+**Not done yet:** `rtl/mpu6050/mpu6050_acquisition_controller.sv` and its testbench are still empty files, so there is no acquisition controller, initialization sequence, or 14-byte burst read in RTL. The packetizer, FIFO, and UART phases have not been started. No Phase 3 hardware result is claimed.
+
+Compile and run command for the current Phase 3 model testbench (ends with `PASS: no errors found` and exit status zero):
 
 ```bash
-iverilog -g2012 -Wall -s tb_mpu6050_model -o /tmp/tb_mpu6050_model.vvp rtl/i2c/timing_enable_gen.sv rtl/i2c/i2c_engine.sv tb/mpu6050/mpu6050_model.sv tb/mpu6050/tb_mpu6050_model.sv
+iverilog -g2012 -Wall -s tb_mpu6050_model -o /tmp/tb_mpu6050_model.vvp rtl/i2c/timing_enable_gen.sv rtl/i2c/i2c_engine.sv tb/mpu6050/mpu6050_model.sv tb/mpu6050/tb_mpu6050_model.sv && vvp /tmp/tb_mpu6050_model.vvp
 ```
 
 ## Overview
